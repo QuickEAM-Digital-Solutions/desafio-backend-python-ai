@@ -1,203 +1,203 @@
 # Desafio Técnico Backend — Software Engineer (Python / AI)
 
-## Objective
+## Objetivo
 
-The goal of this challenge is to evaluate your ability to architect and develop modern, secure, performant, and reactive backend solutions. The test simulates the core business of a corporate SaaS platform: multi-tenant, event-oriented, with real-time updates and integrated AI agents (LLMs) for workflow automation.
+O objetivo deste desafio é avaliar a capacidade de arquitetar e desenvolver soluções de backend modernas, seguras, performáticas e reativas. O teste simula o core business de uma plataforma SaaS corporativa: multi-tenant, orientada a eventos, com atualizações em tempo real e integrada a agentes de Inteligência Artificial (LLMs) para automação de fluxos de trabalho.
 
-We are not looking for a 100% finished system, but rather clean code that demonstrates maturity in software architecture, data modeling, asynchronous processing, real-time communication, and intelligent agent development.
+Não buscamos um sistema 100% finalizado, mas sim um código limpo que demonstre maturidade em arquitetura de software, modelagem de dados, processamento assíncrono, comunicação em tempo real e desenvolvimento de agentes inteligentes.
 
-## Tech Stack
+## Stack Tecnológica
 
-- **Language:** Python 3.11+
-- **Web Framework:** FastAPI (Async, with native WebSocket support)
-- **Validation & AI:** Pydantic (v2) and PydanticAI (mandatory for data validation and agent structuring)
-- **Database:** PostgreSQL (via ORM: SQLAlchemy)
-- **Messaging/Async:** Native `asyncio` (BackgroundTasks + asyncio.create_task)
-- **Containerization:** Docker and Docker Compose
-- **Code Standard:** Code, commits, documentation and logs strictly in English
+- **Linguagem:** Python 3.11+
+- **Framework Web:** FastAPI (Assíncrono, com suporte nativo a WebSockets)
+- **Validação & IA:** Pydantic (v2) e PydanticAI (obrigatórios para validação de dados e estruturação do agente)
+- **Banco de Dados:** PostgreSQL (via ORM: SQLAlchemy)
+- **Mensageria/Assincronismo:** `asyncio` nativo (BackgroundTasks + asyncio.create_task)
+- **Containerização:** Docker e Docker Compose
+- **Padrão de Código:** Código, commits, documentação e logs estritamente em inglês
 
-> **Note:** This is a 100% Backend-focused test. No frontend is required. Delivery must be validated via interactive API documentation (Swagger/Redoc), WebSocket tests, or an automated test suite.
+> **Nota:** Este é um teste 100% focado em Backend. Não é necessário desenvolver nenhuma interface visual (Frontend). A entrega deve ser validada via documentação interativa da API (Swagger/Redoc), testes de WebSocket ou por uma suíte de testes automatizados.
 
-## Challenge Scope (3 Pillars)
+## Escopo do Desafio (3 Pilares)
 
-### Pillar 1: Multi-Tenant Isolation & RBAC
+### Pilar 1: Isolamento Multi-Tenant e Matriz de Permissões (RBAC)
 
-The platform serves multiple companies (Organizations) sharing the same infrastructure with strict data isolation.
+A plataforma atende múltiplas empresas (Organizações) compartilhando a mesma infraestrutura com isolamento estrito dos dados.
 
-1. **Multi-tenancy:** Data isolation via `organization_id` column where every API request automatically filters the scope of the logged-in user's organization (authentication simulated via JWT Token or custom header `X-Organization-ID`).
-2. **Access Control (RBAC):** Scope-based access group structure. A middleware/decorator on routes validates if the user has the required technical permission to execute the action (e.g., `task:read` to list tasks; `403 Forbidden` if attempting a restricted route without credentials).
+1. **Multi-tenancy:** Isolamento de dados via coluna `organization_id` onde cada requisição à API filtra automaticamente o escopo da organização do usuário logado (autenticação simulada via Token JWT ou header customizado `X-Organization-ID`).
+2. **Controle de Acesso (RBAC):** Estrutura de grupos de acesso baseada em escopos. Um middleware/decorator nas rotas valida se o usuário possui a permissão técnica necessária para executar a ação (ex: `task:read` para listar tarefas; erro `403 Forbidden` caso tente uma rota restrita sem a credencial).
 
-### Pillar 2: Conversational AI Agent with PydanticAI & Tool Calling
+### Pilar 2: Agente de IA Conversacional com PydanticAI & Tool Calling
 
-The platform's AI agent must actively interact with the system ecosystem, generating structured and reliable outputs.
+O agente de IA da plataforma precisa interagir ativamente com o ecossistema do sistema, gerando saídas estruturadas e confiáveis.
 
-1. **Chat Endpoint (`POST /v1/chat`):** Route that receives the user's message.
-2. **Agent Construction:** Mandatory use of PydanticAI framework to orchestrate the intelligent agent (connected to OpenAI API, Gemini API, or local Ollama).
-3. **Tool Implementation with Pydantic Validation:** The agent must have access to at least one functional Tool connected to the database.
-   - **Test scenario:** If the user types: *"Register an urgent task called 'Review financial report' for the Commercial department"*, the PydanticAI agent must extract entities in a typed manner, validate them using Pydantic schemas, and autonomously trigger the backend function that inserts the task into the database.
+1. **Endpoint de Chat (`POST /v1/chat`):** Rota que recebe a mensagem do usuário.
+2. **Construção do Agente:** Uso obrigatório do framework PydanticAI para orquestrar o agente inteligente (conectado à OpenAI API, Gemini API ou Ollama local).
+3. **Implementação de Tools com Validação Pydantic:** O agente deve ter acesso a pelo menos uma ferramenta funcional (Tool) conectada ao banco de dados.
+   - **Cenário do teste:** Se o usuário digitar: *"Cadastre uma tarefa urgente chamada 'Revisar relatório financeiro' para o departamento Comercial"*, o agente do PydanticAI deve extrair as entidades de forma tipada, validá-las usando schemas do Pydantic e acionar autonomamente a função de backend que insere a tarefa no banco de dados.
 
-### Pillar 3: Automation Engine & Real-Time Updates (WebSockets)
+### Pilar 3: Motor de Automações e Atualização em Tempo Real (WebSockets)
 
-The system allows events to trigger background actions and reactively notify the user.
+O sistema permite que eventos disparem ações em segundo plano e notifiquem o usuário de forma reativa.
 
-1. **Webhook/Trigger Endpoint (`POST /v1/webhook/event`):** Route that receives simulated external events (e.g., a financial status update or system alert).
-2. **Event-Driven Processing:** The trigger must fire an asynchronous Action (Background Task/Worker) to execute a secondary task in the database (e.g., change a task status to "Overdue" or generate an audit log).
-3. **WebSocket Connection (`/v1/ws/notifications`):** When the background Action completes successfully, the backend must send a reactive/push message through the WebSocket to the logged-in client, simulating a real-time update.
+1. **Endpoint de Webhook/Trigger (`POST /v1/webhook/event`):** Rota que recebe eventos externos simulados (ex: uma atualização de status financeiro ou alerta de sistema).
+2. **Processamento Orientado a Eventos:** O recebimento desse trigger deve disparar uma Action assíncrona (Background Task/Worker) para executar uma tarefa secundária no banco de dados (ex: alterar o status de uma tarefa para "Atrasada" ou gerar um log de auditoria).
+3. **Conexão WebSocket (`/v1/ws/notifications`):** Quando a Action assíncrona for concluída com sucesso, o backend deve enviar uma mensagem de forma reativa/push através do WebSocket para o cliente logado, simulando uma atualização em tempo real.
 
-## Evaluation Criteria
+## Critérios de Avaliação
 
-- **Async Maturity:** Correct use of concurrency with async/await, stable WebSocket connection management, and background tasks.
-- **PydanticAI Usage:** Agent organization, clarity in system prompt definitions, and robustness in Tool injection.
-- **Error Handling:** Resilience if WebSocket connection drops or LLM API returns corrupted data.
-- **Multi-tenant Security:** Guarantee that WebSocket messages or HTTP requests never leak data between different organizations.
+- **Maturidade Assíncrona:** Uso correto de concorrência com async/await, gerenciamento de conexões WebSocket estáveis e tarefas em segundo plano.
+- **Uso do PydanticAI:** Organização do agente, clareza na definição de prompts do sistema e robustez na injeção de Tools.
+- **Tratamento de Erros:** Resiliência caso a conexão WebSocket caia ou a API da LLM retorne dados corrompidos.
+- **Segurança Multi-tenant:** Garantia de que mensagens via WebSocket ou requisições HTTP nunca vazem dados entre organizações diferentes.
 
-## Technical Questionnaire (Senior Architecture Evaluation)
+## Questionário Técnico (Avaliação de Arquitetura Sênior)
 
-> Answer these questions about high-scale scenarios:
+> Responda às seguintes perguntas sobre cenários de alta escala:
 
-### 1. Contextual Architecture and Graph Databases
+### 1. Arquitetura Contextual e Bancos de Grafos
 
-In production AI scenarios, we deal with complex context and RAG knowledge relationships. How would you plan the integration of a Graph-Oriented Database (like Neo4j) with the agent's lifecycle to optimize data retrieval and LLM token cost?
+Em cenários de produção com IA, lidamos com relacionamentos complexos de contexto e conhecimento RAG. Como você planejaria a integração de um Banco de Dados Orientado a Grafos (como o Neo4j) com o ciclo de vida de um agente para otimizar a recuperação de dados e o custo de tokens das LLMs?
 
-**Answer:** _TODO_
+**Resposta:** _TODO_
 
-### 2. WebSockets at High Scale
+### 2. WebSockets em Alta Escala
 
-Maintaining thousands of simultaneous open WebSocket connections consumes significant microservice memory. How would you architect the infrastructure and backend (e.g., using Redis Pub/Sub or message brokers) to ensure real-time notifications work in a distributed manner across multiple backend API instances?
+Manter milhares de conexões WebSocket abertas simultaneamente consome muita memória de microsserviços. Como você arquitetaria a infraestrutura e o backend (ex: usando Redis Pub/Sub ou brokers de mensageria) para garantir que as notificações em tempo real funcionem de forma distribuída entre múltiplas instâncias da API de backend?
 
-**Answer:** _TODO_
+**Resposta:** _TODO_
 
-### 3. Domain Evolution
+### 3. Evolução de Domínio
 
-Looking at the business rules proposed in this challenge, how would you apply Domain-Driven Design (DDD) concepts to clearly separate Bounded Contexts between the conversational AI module and the automation/workflow execution engine?
+Olhando para as regras de negócio propostas neste desafio, como você aplicaria os conceitos de Domain-Driven Design (DDD) para separar claramente os limites de contexto (Bounded Contexts) entre o módulo conversacional de IA e o motor de execução de automações/workflows?
 
-**Answer:** _TODO_
+**Resposta:** _TODO_
 
-## Async Strategy Justification
+## Justificativa da Estratégia Assíncrona
 
-We chose **native `asyncio`** (FastAPI BackgroundTasks + `asyncio.create_task`) as the messaging/async strategy because:
+Escolhemos **`asyncio` nativo** (FastAPI BackgroundTasks + `asyncio.create_task`) como estratégia de mensageria/assincronismo porque:
 
-- The challenge scope is limited and doesn't require distributed workers
-- Avoids extra infrastructure complexity (RabbitMQ/Kafka containers)
-- Demonstrates mastery of Python's native concurrency model
-- For WebSocket push, an in-memory `ConnectionManager` partitioned by organization is sufficient
-- In production, this could be evolved to Redis Pub/Sub or a message broker for horizontal scaling
+- O escopo do desafio é limitado e não requer workers distribuídos
+- Evita complexidade extra de infraestrutura (containers RabbitMQ/Kafka)
+- Demonstra domínio do modelo de concorrência nativa do Python
+- Para push via WebSocket, um `ConnectionManager` in-memory particionado por organização é suficiente
+- Em produção, poderia evoluir para Redis Pub/Sub ou um broker de mensagens para escalonamento horizontal
 
-## Getting Started
+## Como Executar
 
-### Prerequisites
+### Pré-requisitos
 
 - Docker & Docker Compose
-- (Optional) Python 3.12+ for local development without Docker
+- (Opcional) Python 3.12+ para desenvolvimento local sem Docker
 
-### Running with Docker Compose
+### Executando com Docker Compose
 
 ```bash
 docker compose up --build
 ```
 
-The API will be available at `http://localhost:8000`
+A API estará disponível em `http://localhost:8000`
 
 - **Swagger UI:** http://localhost:8000/docs
 - **ReDoc:** http://localhost:8000/redoc
 
-### Running Locally (Development)
+### Executando Localmente (Desenvolvimento)
 
 ```bash
-# Create virtual environment
+# Criar ambiente virtual
 python -m venv .venv
 
-# Activate virtual environment
+# Ativar ambiente virtual
 source .venv/bin/activate  # Linux/Mac
 .venv\Scripts\activate     # Windows
 
-# Install dependencies
+# Instalar dependências
 pip install -r requirements.txt
-pip install -r requirements-dev.txt  # (optional) for testing & linting
+pip install -r requirements-dev.txt  # (opcional) para testes & linting
 ```
 
-### Database Migrations (Alembic)
+### Migrações de Banco de Dados (Alembic)
 
-Make sure PostgreSQL is running (either via Docker or locally) and your `.env` has the correct `DATABASE_URL`.
+Certifique-se que o PostgreSQL está rodando (via Docker ou localmente) e que o `.env` possui o `DATABASE_URL` correto.
 
 ```bash
-# Generate a new migration after changing models
-alembic revision --autogenerate -m "description of changes"
+# Gerar uma nova migração após alterar os models
+alembic revision --autogenerate -m "descrição das alterações"
 
-# Apply all pending migrations
+# Aplicar todas as migrações pendentes
 alembic upgrade head
 
-# Rollback the last migration
+# Reverter a última migração
 alembic downgrade -1
 
-# Check current migration state
+# Verificar estado atual das migrações
 alembic current
 ```
 
-> **Tip:** If running only the database via Docker, use:
+> **Dica:** Se estiver rodando apenas o banco de dados via Docker:
 > ```bash
 > docker compose up db -d
 > ```
-> Then set `DATABASE_URL=postgresql+asyncpg://app:app@localhost:5433/desafio` in your `.env` for local development.
+> Depois configure `DATABASE_URL=postgresql+asyncpg://app:app@localhost:5433/desafio` no seu `.env` para desenvolvimento local.
 
-### Seed Data
+### Dados Iniciais (Seed)
 
 ```bash
 python -m seed.seed_data
 ```
 
-### Start the Server
+### Iniciar o Servidor
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-The API will be available at `http://localhost:8000`
+A API estará disponível em `http://localhost:8000`
 
 - **Swagger UI:** http://localhost:8000/docs
 - **ReDoc:** http://localhost:8000/redoc
 
-### Running Tests
+### Executando Testes
 
 ```bash
 pytest -v
 ```
 
-## Multi-Tenant Strategy
+## Estratégia Multi-Tenant
 
-Data isolation is enforced via a global `organization_id` column present in all tenant-scoped tables. Every database query is automatically filtered through a dependency injection mechanism (`get_current_organization`) that extracts the organization context from the authenticated JWT token or `X-Organization-ID` header.
+O isolamento de dados é garantido por uma coluna global `organization_id` presente em todas as tabelas com escopo de tenant. Toda query ao banco de dados é automaticamente filtrada através de um mecanismo de injeção de dependência (`get_current_organization`) que extrai o contexto da organização a partir do token JWT autenticado ou do header `X-Organization-ID`.
 
-WebSocket connections are managed by a `ConnectionManager` that partitions active connections by `organization_id`, ensuring notifications are only broadcast to users within the same organization.
+As conexões WebSocket são gerenciadas por um `ConnectionManager` que particiona as conexões ativas por `organization_id`, garantindo que as notificações sejam enviadas apenas para usuários dentro da mesma organização.
 
-## Project Structure
+## Estrutura do Projeto
 
 ```
 app/
-├── main.py                  # FastAPI app entrypoint
-├── config.py                # Settings (pydantic-settings)
+├── main.py                  # Entrypoint da aplicação FastAPI
+├── config.py                # Configurações (pydantic-settings)
 ├── api/
-│   ├── deps.py              # Shared dependencies (DB session, auth, org)
+│   ├── deps.py              # Dependências compartilhadas (DB session, auth, org)
 │   └── v1/
-│       ├── router.py        # Route aggregator
-│       └── endpoints/       # One file per resource
+│       ├── router.py        # Agregador de rotas
+│       └── endpoints/       # Um arquivo por recurso
 ├── core/
-│   ├── security.py          # JWT, password hashing
+│   ├── security.py          # JWT, hash de senhas
 │   ├── database.py          # AsyncEngine, AsyncSession
-│   ├── permissions.py       # RBAC middleware/decorator
-│   └── websocket_manager.py # Multi-tenant ConnectionManager
-├── models/                  # SQLAlchemy models
-├── schemas/                 # Pydantic schemas
-├── services/                # Business logic
-├── agent/                   # PydanticAI agent, tools, prompts
-└── repositories/            # Data access layer
+│   ├── permissions.py       # Middleware/decorator RBAC
+│   └── websocket_manager.py # ConnectionManager multi-tenant
+├── models/                  # Models SQLAlchemy
+├── schemas/                 # Schemas Pydantic
+├── services/                # Lógica de negócio
+├── agent/                   # Agente PydanticAI, tools, prompts
+└── repositories/            # Camada de acesso a dados
 ```
 
-## Deliverables
+## Entregáveis
 
-- [x] GitHub repository
-- [x] README with Docker Compose instructions, multi-tenant strategy, and technical questionnaire
-- [ ] Seed data for immediate testing
-- [ ] Functional API endpoints
-- [ ] AI Agent with Tool Calling
-- [ ] WebSocket real-time notifications
-- [ ] Automated tests
+- [x] Repositório no GitHub
+- [x] README com instruções de Docker Compose, estratégia multi-tenant e questionário técnico
+- [ ] Massa de dados (seed) para testes imediatos
+- [ ] Endpoints funcionais da API
+- [ ] Agente de IA com Tool Calling
+- [ ] Notificações em tempo real via WebSocket
+- [ ] Testes automatizados
